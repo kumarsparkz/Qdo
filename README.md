@@ -9,7 +9,7 @@ A beautiful, full-stack task management application that uses the Eisenhower Mat
 
 ## Features
 
-- ✅ **Google OAuth Authentication** - Secure login with Gmail
+- ✅ **Dual Authentication** - Google OAuth & Email/Password login
 - ✅ **Project Management** - Organize tasks into projects
 - ✅ **4-Quadrant View** - Eisenhower Matrix visualization
   - Urgent & Important
@@ -31,7 +31,7 @@ A beautiful, full-stack task management application that uses the Eisenhower Mat
 - **Language**: TypeScript
 - **Styling**: TailwindCSS
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (Google OAuth)
+- **Authentication**: Supabase Auth (Google OAuth + Email/Password)
 - **Markdown**: React Markdown + remark-gfm
 - **Deployment**: Vercel
 

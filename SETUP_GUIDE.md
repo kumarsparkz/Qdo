@@ -106,6 +106,33 @@ Before you begin, ensure you have:
      - \`http://localhost:3000/auth/callback\`
      - \`https://YOUR-DOMAIN.vercel.app/auth/callback\` (add after deployment)
 
+## Email Authentication Setup
+
+Email authentication is enabled by default in Supabase and works out of the box! No additional configuration needed.
+
+### Email Auth Features
+
+1. **Sign Up**: Users can create accounts with email and password
+2. **Email Confirmation**: New users receive a confirmation email (configurable)
+3. **Sign In**: Existing users can sign in with their credentials
+4. **Password Requirements**: Minimum 6 characters (enforced)
+
+### Optional: Configure Email Settings
+
+1. In Supabase, go to **Authentication** → **Email Templates**
+2. Customize the confirmation email template (optional)
+3. Go to **Authentication** → **Settings**
+4. Configure email settings:
+   - **Enable email confirmations**: Toggle based on your needs
+   - **Enable email change confirmations**: Recommended to keep enabled
+   - **Secure email change**: Recommended to keep enabled
+
+### For Production
+
+1. Configure SMTP settings in **Project Settings** → **Auth** → **SMTP Settings**
+2. Add your own email service (SendGrid, Mailgun, etc.) for better deliverability
+3. Or keep using Supabase's built-in email service (limited to development)
+
 ## Local Development Setup
 
 ### Step 1: Clone and Install
