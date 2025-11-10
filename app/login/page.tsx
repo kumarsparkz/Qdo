@@ -76,7 +76,8 @@ export default function LoginPage() {
 
         if (error) throw error
 
-        router.push('/')
+        // Use window.location for full page reload to ensure session is properly established
+        window.location.href = '/'
       }
     } catch (error: any) {
       setError(error.message || 'An error occurred during authentication')
