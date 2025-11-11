@@ -132,7 +132,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Navbar userEmail={userEmail} />
 
       <main className="container mx-auto px-4 py-8">
@@ -207,7 +207,11 @@ export default function Home() {
                   <FolderPlus className="mr-2 h-5 w-5" />
                   New Project
                 </Button>
-                <Button onClick={() => setTaskModalOpen(true)} size="lg">
+                <Button
+                  onClick={() => setTaskModalOpen(true)}
+                  size="lg"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
                   <Plus className="mr-2 h-5 w-5" />
                   Add Task
                 </Button>
@@ -235,8 +239,8 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Quadrant 1: Urgent & Important */}
-            <Card className="border-red-200 bg-red-50/50">
-              <CardHeader className="bg-red-100/50">
+            <Card className="border-red-200 bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl shadow-md">
+              <CardHeader className="bg-red-100/50 rounded-t-2xl">
                 <CardTitle className="text-red-900 flex items-center justify-between">
                   <span>🔥 Urgent & Important</span>
                   <span className="text-sm font-normal">({urgentImportant.length})</span>
@@ -254,8 +258,8 @@ export default function Home() {
             </Card>
 
             {/* Quadrant 2: Urgent & Not Important */}
-            <Card className="border-orange-200 bg-orange-50/50">
-              <CardHeader className="bg-orange-100/50">
+            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl shadow-md">
+              <CardHeader className="bg-orange-100/50 rounded-t-2xl">
                 <CardTitle className="text-orange-900 flex items-center justify-between">
                   <span>⚡ Urgent & Not Important</span>
                   <span className="text-sm font-normal">({urgentNotImportant.length})</span>
@@ -273,8 +277,8 @@ export default function Home() {
             </Card>
 
             {/* Quadrant 3: Not Urgent & Important */}
-            <Card className="border-blue-200 bg-blue-50/50">
-              <CardHeader className="bg-blue-100/50">
+            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-md">
+              <CardHeader className="bg-blue-100/50 rounded-t-2xl">
                 <CardTitle className="text-blue-900 flex items-center justify-between">
                   <span>📅 Not Urgent & Important</span>
                   <span className="text-sm font-normal">({notUrgentImportant.length})</span>
@@ -292,8 +296,8 @@ export default function Home() {
             </Card>
 
             {/* Quadrant 4: Not Urgent & Not Important */}
-            <Card className="border-green-200 bg-green-50/50">
-              <CardHeader className="bg-green-100/50">
+            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-md">
+              <CardHeader className="bg-green-100/50 rounded-t-2xl">
                 <CardTitle className="text-green-900 flex items-center justify-between">
                   <span>🌱 Not Urgent & Not Important</span>
                   <span className="text-sm font-normal">({notUrgentNotImportant.length})</span>
@@ -330,7 +334,7 @@ export default function Home() {
       {projects.length > 0 && (
         <button
           onClick={() => setTaskModalOpen(true)}
-          className="fixed bottom-8 right-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-4 shadow-lg transition-all hover:scale-110"
+          className="fixed bottom-8 right-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full p-4 shadow-xl transition-all hover:scale-110 hover:shadow-2xl"
           aria-label="Add new task"
         >
           <Plus className="h-6 w-6" />
