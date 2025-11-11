@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Quadrant Todo - Eisenhower Matrix Task Manager",
-  description: "Organize your tasks using the Eisenhower Matrix with rich markdown support",
+  title: "To-Do List",
+  description: "Organize your tasks and prioritize",
 };
 
 export default function RootLayout({
