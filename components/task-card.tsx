@@ -90,7 +90,7 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
           <Button
             size="sm"
             variant={task.status === 'in_progress' ? 'default' : 'outline'}
-            onClick={() => onStatusChange(task.id, 'in_progress')}
+            onClick={() => onStatusChange(task.id, task.status === 'in_progress' ? 'todo' : 'in_progress')}
             className={task.status === 'in_progress' ? getStatusColor('in_progress') : ''}
           >
             In Progress
@@ -98,7 +98,7 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
           <Button
             size="sm"
             variant={task.status === 'blocked' ? 'default' : 'outline'}
-            onClick={() => onStatusChange(task.id, 'blocked')}
+            onClick={() => onStatusChange(task.id, task.status === 'blocked' ? 'todo' : 'blocked')}
             className={task.status === 'blocked' ? getStatusColor('blocked') : ''}
           >
             Blocked
@@ -106,7 +106,7 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
           <Button
             size="sm"
             variant={task.status === 'done' ? 'default' : 'outline'}
-            onClick={() => onStatusChange(task.id, 'done')}
+            onClick={() => onStatusChange(task.id, task.status === 'done' ? 'todo' : 'done')}
             className={task.status === 'done' ? getStatusColor('done') : ''}
           >
             Done

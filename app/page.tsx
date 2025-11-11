@@ -14,6 +14,7 @@ interface Task {
   id: string
   title: string
   description: string | null
+  project_id: string
   is_urgent: boolean
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
@@ -29,6 +30,7 @@ interface Project {
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
@@ -89,6 +91,14 @@ export default function Home() {
     }
   }
 
+  const toggleProjectFilter = (projectId: string) => {
+    setSelectedProjectIds(prev =>
+      prev.includes(projectId)
+        ? prev.filter(id => id !== projectId)
+        : [...prev, projectId]
+    )
+  }
+
   const sortTasks = (tasks: Task[]) => {
     return [...tasks].sort((a, b) => {
       // First sort by priority (must_have first)
@@ -99,11 +109,16 @@ export default function Home() {
     })
   }
 
+  // Filter tasks by selected projects (if any are selected)
+  const filteredTasks = selectedProjectIds.length > 0
+    ? tasks.filter(task => selectedProjectIds.includes(task.project_id))
+    : tasks
+
   // Categorize tasks into quadrants
-  const urgentImportant = sortTasks(tasks.filter(t => t.is_urgent && t.is_important))
-  const urgentNotImportant = sortTasks(tasks.filter(t => t.is_urgent && !t.is_important))
-  const notUrgentImportant = sortTasks(tasks.filter(t => !t.is_urgent && t.is_important))
-  const notUrgentNotImportant = sortTasks(tasks.filter(t => !t.is_urgent && !t.is_important))
+  const urgentImportant = sortTasks(filteredTasks.filter(t => t.is_urgent && t.is_important))
+  const urgentNotImportant = sortTasks(filteredTasks.filter(t => t.is_urgent && !t.is_important))
+  const notUrgentImportant = sortTasks(filteredTasks.filter(t => !t.is_urgent && t.is_important))
+  const notUrgentNotImportant = sortTasks(filteredTasks.filter(t => !t.is_urgent && !t.is_important))
 
   if (loading) {
     return (
@@ -124,22 +139,51 @@ export default function Home() {
         {/* Projects Section */}
         {projects.length > 0 && (
           <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <FolderPlus className="h-5 w-5 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Projects ({projects.length})</h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <FolderPlus className="h-5 w-5 text-muted-foreground" />
+                <h3 className="text-lg font-semibold">
+                  Projects ({projects.length})
+                  {selectedProjectIds.length > 0 && (
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      • {selectedProjectIds.length} selected
+                    </span>
+                  )}
+                </h3>
+              </div>
+              {selectedProjectIds.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedProjectIds([])}
+                  className="text-xs"
+                >
+                  Clear Filter
+                </Button>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="bg-white border rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <p className="font-medium">{project.name}</p>
-                  {project.description && (
-                    <p className="text-xs text-muted-foreground">{project.description}</p>
-                  )}
-                </div>
-              ))}
+              {projects.map((project) => {
+                const isSelected = selectedProjectIds.includes(project.id)
+                return (
+                  <button
+                    key={project.id}
+                    onClick={() => toggleProjectFilter(project.id)}
+                    className={`border rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-white hover:bg-gray-50'
+                    }`}
+                  >
+                    <p className="font-medium">{project.name}</p>
+                    {project.description && (
+                      <p className={`text-xs ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                        {project.description}
+                      </p>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
