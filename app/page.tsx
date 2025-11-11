@@ -6,9 +6,11 @@ import Navbar from '@/components/navbar'
 import TaskCard from '@/components/task-card'
 import CreateTaskModal from '@/components/create-task-modal'
 import ProjectModal from '@/components/project-modal'
+import FilterBar, { FilterOptions } from '@/components/filter-bar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, FolderPlus } from 'lucide-react'
+import { parseISO, isPast, isToday, isThisWeek, isThisMonth, startOfToday } from 'date-fns'
 
 interface Task {
   id: string
@@ -36,6 +38,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [projectModalOpen, setProjectModalOpen] = useState(false)
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: '',
+    status: [],
+    deadline: [],
+    priority: []
+  })
 
   const supabase = createClient()
 
@@ -110,10 +118,67 @@ export default function Home() {
     })
   }
 
+  const applyFilters = (tasksToFilter: Task[]) => {
+    let result = tasksToFilter
+
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase()
+      result = result.filter(task =>
+        task.title.toLowerCase().includes(searchLower) ||
+        (task.description && task.description.toLowerCase().includes(searchLower))
+      )
+    }
+
+    // Apply status filter
+    if (filters.status.length > 0) {
+      result = result.filter(task => filters.status.includes(task.status))
+    }
+
+    // Apply deadline filter
+    if (filters.deadline.length > 0) {
+      result = result.filter(task => {
+        if (!task.deadline && filters.deadline.includes('no-deadline')) {
+          return true
+        }
+
+        if (task.deadline) {
+          const deadlineDate = parseISO(task.deadline)
+          const today = startOfToday()
+
+          if (filters.deadline.includes('overdue') && isPast(deadlineDate) && !isToday(deadlineDate)) {
+            return true
+          }
+          if (filters.deadline.includes('today') && isToday(deadlineDate)) {
+            return true
+          }
+          if (filters.deadline.includes('this-week') && isThisWeek(deadlineDate, { weekStartsOn: 0 })) {
+            return true
+          }
+          if (filters.deadline.includes('this-month') && isThisMonth(deadlineDate)) {
+            return true
+          }
+        }
+
+        return false
+      })
+    }
+
+    // Apply priority filter
+    if (filters.priority.length > 0) {
+      result = result.filter(task => filters.priority.includes(task.priority))
+    }
+
+    return result
+  }
+
   // Filter tasks by selected projects (if any are selected)
-  const filteredTasks = selectedProjectIds.length > 0
+  const projectFilteredTasks = selectedProjectIds.length > 0
     ? tasks.filter(task => selectedProjectIds.includes(task.project_id))
     : tasks
+
+  // Apply all filters
+  const filteredTasks = applyFilters(projectFilteredTasks)
 
   // Categorize tasks into quadrants
   const urgentImportant = sortTasks(filteredTasks.filter(t => t.is_urgent && t.is_important))
@@ -186,6 +251,13 @@ export default function Home() {
                 )
               })}
             </div>
+          </div>
+        )}
+
+        {/* Filter Bar */}
+        {projects.length > 0 && (
+          <div className="mb-6">
+            <FilterBar filters={filters} onFilterChange={setFilters} />
           </div>
         )}
 
