@@ -102,16 +102,16 @@ export default function LoginPage() {
             <Logo className="h-12 w-12" />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Quadrant Todo
+            To-Do
           </CardTitle>
           <CardDescription className="text-base">
-            Organize your tasks with the Eisenhower Matrix
+            Organize your tasks &
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center mb-4">
             <p className="text-sm text-muted-foreground">
-              Prioritize what matters most with our 4-quadrant task management system
+              Prioritize what matters most
             </p>
           </div>
 
