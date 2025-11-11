@@ -121,6 +121,29 @@ export default function Home() {
       <Navbar userEmail={userEmail} />
 
       <main className="container mx-auto px-4 py-8">
+        {/* Projects Section */}
+        {projects.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <FolderPlus className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Projects ({projects.length})</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="bg-white border rounded-lg px-4 py-2 shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <p className="font-medium">{project.name}</p>
+                  {project.description && (
+                    <p className="text-xs text-muted-foreground">{project.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold">Eisenhower Matrix</h2>
@@ -129,17 +152,22 @@ export default function Home() {
             </p>
           </div>
           <div className="flex gap-2">
-            {projects.length === 0 && (
+            {projects.length === 0 ? (
               <Button onClick={() => setProjectModalOpen(true)} variant="outline">
                 <FolderPlus className="mr-2 h-4 w-4" />
                 Create Project First
               </Button>
-            )}
-            {projects.length > 0 && (
-              <Button onClick={() => setTaskModalOpen(true)} size="lg">
-                <Plus className="mr-2 h-5 w-5" />
-                Add Task
-              </Button>
+            ) : (
+              <>
+                <Button onClick={() => setProjectModalOpen(true)} variant="outline" size="lg">
+                  <FolderPlus className="mr-2 h-5 w-5" />
+                  New Project
+                </Button>
+                <Button onClick={() => setTaskModalOpen(true)} size="lg">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Add Task
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -251,13 +279,7 @@ export default function Home() {
       <ProjectModal
         open={projectModalOpen}
         onOpenChange={setProjectModalOpen}
-        onProjectCreated={() => {
-          fetchProjects()
-          // If this is the first project, auto-open task creation
-          if (projects.length === 0) {
-            setTimeout(() => setTaskModalOpen(true), 500)
-          }
-        }}
+        onProjectCreated={fetchProjects}
       />
 
       {/* Floating Action Button */}
