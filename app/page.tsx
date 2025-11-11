@@ -3,14 +3,17 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/navbar'
+import DraggableTaskCard from '@/components/draggable-task-card'
 import TaskCard from '@/components/task-card'
 import CreateTaskModal from '@/components/create-task-modal'
 import ProjectModal from '@/components/project-modal'
 import FilterBar, { FilterOptions } from '@/components/filter-bar'
+import DroppableQuadrant from '@/components/droppable-quadrant'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Plus, FolderPlus } from 'lucide-react'
 import { parseISO, isPast, isToday, isThisWeek, isThisMonth, startOfToday } from 'date-fns'
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
 
 interface Task {
   id: string
@@ -44,6 +47,7 @@ export default function Home() {
     deadline: [],
     priority: []
   })
+  const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const supabase = createClient()
 
@@ -106,6 +110,44 @@ export default function Home() {
         ? prev.filter(id => id !== projectId)
         : [...prev, projectId]
     )
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = event.active.data.current?.task as Task
+    setActiveTask(task)
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveTask(null)
+
+    if (!over) return
+
+    const task = active.data.current?.task as Task
+    const targetQuadrant = over.data.current as { isUrgent: boolean; isImportant: boolean }
+
+    // Check if task is being moved to a different quadrant
+    if (
+      task.is_urgent === targetQuadrant.isUrgent &&
+      task.is_important === targetQuadrant.isImportant
+    ) {
+      return // No change needed
+    }
+
+    // Update task urgency and importance
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        is_urgent: targetQuadrant.isUrgent,
+        is_important: targetQuadrant.isImportant
+      })
+      .eq('id', task.id)
+
+    if (error) {
+      console.error('Error updating task:', error)
+    } else {
+      fetchTasks()
+    }
   }
 
   const sortTasks = (tasks: Task[]) => {
@@ -310,83 +352,98 @@ export default function Home() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Quadrant 1: Urgent & Important */}
-            <Card className="border-red-200 bg-gradient-to-br from-red-50 to-rose-50 rounded-2xl shadow-md">
-              <CardHeader className="bg-red-100/50 rounded-t-2xl">
-                <CardTitle className="text-red-900 flex items-center justify-between">
-                  <span>🔥 Urgent & Important</span>
-                  <span className="text-sm font-normal">({urgentImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {urgentImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  urgentImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
+          <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Quadrant 1: Urgent & Important */}
+              <DroppableQuadrant
+                id="quadrant-urgent-important"
+                title="Urgent & Important"
+                emoji="🔥"
+                count={urgentImportant.length}
+                colorClasses={{
+                  border: 'border-red-200',
+                  gradient: 'bg-gradient-to-br from-red-50 to-rose-50',
+                  header: 'bg-red-100/50',
+                  text: 'text-red-900'
+                }}
+                isUrgent={true}
+                isImportant={true}
+              >
+                {urgentImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
 
-            {/* Quadrant 2: Urgent & Not Important */}
-            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl shadow-md">
-              <CardHeader className="bg-orange-100/50 rounded-t-2xl">
-                <CardTitle className="text-orange-900 flex items-center justify-between">
-                  <span>⚡ Urgent & Not Important</span>
-                  <span className="text-sm font-normal">({urgentNotImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {urgentNotImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  urgentNotImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
+              {/* Quadrant 2: Urgent & Not Important */}
+              <DroppableQuadrant
+                id="quadrant-urgent-notimportant"
+                title="Urgent & Not Important"
+                emoji="⚡"
+                count={urgentNotImportant.length}
+                colorClasses={{
+                  border: 'border-orange-200',
+                  gradient: 'bg-gradient-to-br from-orange-50 to-amber-50',
+                  header: 'bg-orange-100/50',
+                  text: 'text-orange-900'
+                }}
+                isUrgent={true}
+                isImportant={false}
+              >
+                {urgentNotImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
 
-            {/* Quadrant 3: Not Urgent & Important */}
-            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-md">
-              <CardHeader className="bg-blue-100/50 rounded-t-2xl">
-                <CardTitle className="text-blue-900 flex items-center justify-between">
-                  <span>📅 Not Urgent & Important</span>
-                  <span className="text-sm font-normal">({notUrgentImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {notUrgentImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  notUrgentImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
+              {/* Quadrant 3: Not Urgent & Important */}
+              <DroppableQuadrant
+                id="quadrant-noturgent-important"
+                title="Not Urgent & Important"
+                emoji="📅"
+                count={notUrgentImportant.length}
+                colorClasses={{
+                  border: 'border-blue-200',
+                  gradient: 'bg-gradient-to-br from-blue-50 to-indigo-50',
+                  header: 'bg-blue-100/50',
+                  text: 'text-blue-900'
+                }}
+                isUrgent={false}
+                isImportant={true}
+              >
+                {notUrgentImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
 
-            {/* Quadrant 4: Not Urgent & Not Important */}
-            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-md">
-              <CardHeader className="bg-green-100/50 rounded-t-2xl">
-                <CardTitle className="text-green-900 flex items-center justify-between">
-                  <span>🌱 Not Urgent & Not Important</span>
-                  <span className="text-sm font-normal">({notUrgentNotImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {notUrgentNotImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  notUrgentNotImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              {/* Quadrant 4: Not Urgent & Not Important */}
+              <DroppableQuadrant
+                id="quadrant-noturgent-notimportant"
+                title="Not Urgent & Not Important"
+                emoji="🌱"
+                count={notUrgentNotImportant.length}
+                colorClasses={{
+                  border: 'border-green-200',
+                  gradient: 'bg-gradient-to-br from-green-50 to-emerald-50',
+                  header: 'bg-green-100/50',
+                  text: 'text-green-900'
+                }}
+                isUrgent={false}
+                isImportant={false}
+              >
+                {notUrgentNotImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
+            </div>
+
+            {/* Drag Overlay */}
+            <DragOverlay>
+              {activeTask ? (
+                <div className="opacity-80">
+                  <TaskCard task={activeTask} onStatusChange={() => {}} />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </main>
 
