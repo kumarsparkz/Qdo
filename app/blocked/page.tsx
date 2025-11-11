@@ -15,6 +15,7 @@ interface Task {
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
   status: 'todo' | 'in_progress' | 'blocked' | 'done'
+  deadline: string | null
 }
 
 export default function BlockedPage() {
