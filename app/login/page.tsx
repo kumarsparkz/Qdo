@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
-import { LogIn, Mail, AlertCircle } from 'lucide-react'
+import { LogIn, Mail, AlertCircle, Lock, User } from 'lucide-react'
 import { useState } from 'react'
+import Logo from '@/components/logo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -87,16 +88,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Quadrant Todo</CardTitle>
-          <CardDescription className="text-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4 relative overflow-hidden">
+      {/* Animated background blobs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-1/2 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <Card className="w-full max-w-md relative z-10 shadow-2xl">
+        <CardHeader className="text-center space-y-2">
+          <div className="flex justify-center mb-2">
+            <Logo className="h-12 w-12" />
+          </div>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Quadrant Todo
+          </CardTitle>
+          <CardDescription className="text-base">
             Organize your tasks with the Eisenhower Matrix
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-center mb-6">
+          <div className="text-center mb-4">
             <p className="text-sm text-muted-foreground">
               Prioritize what matters most with our 4-quadrant task management system
             </p>
@@ -105,9 +118,8 @@ export default function LoginPage() {
           {/* Google OAuth */}
           <Button
             onClick={handleGoogleLogin}
-            className="w-full"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             size="lg"
-            variant="outline"
           >
             <LogIn className="mr-2 h-5 w-5" />
             Sign in with Google
@@ -119,7 +131,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">
-                Or continue with
+                Or continue with email
               </span>
             </div>
           </div>
@@ -127,21 +139,21 @@ export default function LoginPage() {
           {/* Email Auth Form */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {error && (
-              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded flex items-start">
+              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-lg flex items-start">
                 <AlertCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
               </div>
             )}
 
             {message && (
-              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded flex items-start">
+              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-start">
                 <Mail className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
                 <span className="text-sm">{message}</span>
               </div>
             )}
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="email"
                 placeholder="you@example.com"
@@ -149,11 +161,12 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                className="pl-10"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="password"
                 placeholder="••••••••"
@@ -162,33 +175,32 @@ export default function LoginPage() {
                 required
                 disabled={loading}
                 minLength={6}
+                className="pl-10"
               />
             </div>
 
             {mode === 'signup' && (
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  Confirm Password
-                </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={loading}
                   minLength={6}
+                  className="pl-10"
                 />
               </div>
             )}
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
               size="lg"
               disabled={loading}
             >
-              <Mail className="mr-2 h-5 w-5" />
               {loading
                 ? mode === 'signup'
                   ? 'Creating account...'
@@ -207,7 +219,7 @@ export default function LoginPage() {
                 setError('')
                 setMessage('')
               }}
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium hover:underline"
             >
               {mode === 'signin'
                 ? "Don't have an account? Sign up"
