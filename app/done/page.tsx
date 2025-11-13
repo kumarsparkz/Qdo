@@ -15,6 +15,7 @@ interface Task {
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
   status: 'todo' | 'in_progress' | 'blocked' | 'done'
+  deadline: string | null
 }
 
 export default function DonePage() {
@@ -76,7 +77,7 @@ export default function DonePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Navbar userEmail={userEmail} />
 
       <main className="container mx-auto px-4 py-8">

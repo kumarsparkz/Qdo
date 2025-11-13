@@ -3,12 +3,17 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/navbar'
+import DraggableTaskCard from '@/components/draggable-task-card'
 import TaskCard from '@/components/task-card'
 import CreateTaskModal from '@/components/create-task-modal'
 import ProjectModal from '@/components/project-modal'
+import FilterBar, { FilterOptions } from '@/components/filter-bar'
+import DroppableQuadrant from '@/components/droppable-quadrant'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Plus, FolderPlus } from 'lucide-react'
+import { parseISO, isPast, isToday, isThisWeek, isThisMonth, startOfToday } from 'date-fns'
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
 
 interface Task {
   id: string
@@ -19,6 +24,7 @@ interface Task {
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
   status: 'todo' | 'in_progress' | 'blocked' | 'done'
+  deadline: string | null
 }
 
 interface Project {
@@ -35,6 +41,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
   const [projectModalOpen, setProjectModalOpen] = useState(false)
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: '',
+    status: [],
+    deadline: [],
+    priority: []
+  })
+  const [activeTask, setActiveTask] = useState<Task | null>(null)
 
   const supabase = createClient()
 
@@ -99,6 +112,44 @@ export default function Home() {
     )
   }
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = event.active.data.current?.task as Task
+    setActiveTask(task)
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveTask(null)
+
+    if (!over) return
+
+    const task = active.data.current?.task as Task
+    const targetQuadrant = over.data.current as { isUrgent: boolean; isImportant: boolean }
+
+    // Check if task is being moved to a different quadrant
+    if (
+      task.is_urgent === targetQuadrant.isUrgent &&
+      task.is_important === targetQuadrant.isImportant
+    ) {
+      return // No change needed
+    }
+
+    // Update task urgency and importance
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        is_urgent: targetQuadrant.isUrgent,
+        is_important: targetQuadrant.isImportant
+      })
+      .eq('id', task.id)
+
+    if (error) {
+      console.error('Error updating task:', error)
+    } else {
+      fetchTasks()
+    }
+  }
+
   const sortTasks = (tasks: Task[]) => {
     return [...tasks].sort((a, b) => {
       // First sort by priority (must_have first)
@@ -109,10 +160,67 @@ export default function Home() {
     })
   }
 
+  const applyFilters = (tasksToFilter: Task[]) => {
+    let result = tasksToFilter
+
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase()
+      result = result.filter(task =>
+        task.title.toLowerCase().includes(searchLower) ||
+        (task.description && task.description.toLowerCase().includes(searchLower))
+      )
+    }
+
+    // Apply status filter
+    if (filters.status.length > 0) {
+      result = result.filter(task => filters.status.includes(task.status))
+    }
+
+    // Apply deadline filter
+    if (filters.deadline.length > 0) {
+      result = result.filter(task => {
+        if (!task.deadline && filters.deadline.includes('no-deadline')) {
+          return true
+        }
+
+        if (task.deadline) {
+          const deadlineDate = parseISO(task.deadline)
+          const today = startOfToday()
+
+          if (filters.deadline.includes('overdue') && isPast(deadlineDate) && !isToday(deadlineDate)) {
+            return true
+          }
+          if (filters.deadline.includes('today') && isToday(deadlineDate)) {
+            return true
+          }
+          if (filters.deadline.includes('this-week') && isThisWeek(deadlineDate, { weekStartsOn: 0 })) {
+            return true
+          }
+          if (filters.deadline.includes('this-month') && isThisMonth(deadlineDate)) {
+            return true
+          }
+        }
+
+        return false
+      })
+    }
+
+    // Apply priority filter
+    if (filters.priority.length > 0) {
+      result = result.filter(task => filters.priority.includes(task.priority))
+    }
+
+    return result
+  }
+
   // Filter tasks by selected projects (if any are selected)
-  const filteredTasks = selectedProjectIds.length > 0
+  const projectFilteredTasks = selectedProjectIds.length > 0
     ? tasks.filter(task => selectedProjectIds.includes(task.project_id))
     : tasks
+
+  // Apply all filters
+  const filteredTasks = applyFilters(projectFilteredTasks)
 
   // Categorize tasks into quadrants
   const urgentImportant = sortTasks(filteredTasks.filter(t => t.is_urgent && t.is_important))
@@ -132,7 +240,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Navbar userEmail={userEmail} />
 
       <main className="container mx-auto px-4 py-8">
@@ -188,6 +296,13 @@ export default function Home() {
           </div>
         )}
 
+        {/* Filter Bar */}
+        {projects.length > 0 && (
+          <div className="mb-6">
+            <FilterBar filters={filters} onFilterChange={setFilters} />
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-3xl font-bold">Eisenhower Matrix</h2>
@@ -207,7 +322,11 @@ export default function Home() {
                   <FolderPlus className="mr-2 h-5 w-5" />
                   New Project
                 </Button>
-                <Button onClick={() => setTaskModalOpen(true)} size="lg">
+                <Button
+                  onClick={() => setTaskModalOpen(true)}
+                  size="lg"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                >
                   <Plus className="mr-2 h-5 w-5" />
                   Add Task
                 </Button>
@@ -233,83 +352,98 @@ export default function Home() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Quadrant 1: Urgent & Important */}
-            <Card className="border-red-200 bg-red-50/50">
-              <CardHeader className="bg-red-100/50">
-                <CardTitle className="text-red-900 flex items-center justify-between">
-                  <span>🔥 Urgent & Important</span>
-                  <span className="text-sm font-normal">({urgentImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {urgentImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  urgentImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
+          <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Quadrant 1: Urgent & Important */}
+              <DroppableQuadrant
+                id="quadrant-urgent-important"
+                title="Urgent & Important"
+                emoji="🔥"
+                count={urgentImportant.length}
+                colorClasses={{
+                  border: 'border-red-200',
+                  gradient: 'bg-gradient-to-br from-red-50 to-rose-50',
+                  header: 'bg-red-100/50',
+                  text: 'text-red-900'
+                }}
+                isUrgent={true}
+                isImportant={true}
+              >
+                {urgentImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
 
-            {/* Quadrant 2: Urgent & Not Important */}
-            <Card className="border-orange-200 bg-orange-50/50">
-              <CardHeader className="bg-orange-100/50">
-                <CardTitle className="text-orange-900 flex items-center justify-between">
-                  <span>⚡ Urgent & Not Important</span>
-                  <span className="text-sm font-normal">({urgentNotImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {urgentNotImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  urgentNotImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
+              {/* Quadrant 2: Urgent & Not Important */}
+              <DroppableQuadrant
+                id="quadrant-urgent-notimportant"
+                title="Urgent & Not Important"
+                emoji="⚡"
+                count={urgentNotImportant.length}
+                colorClasses={{
+                  border: 'border-orange-200',
+                  gradient: 'bg-gradient-to-br from-orange-50 to-amber-50',
+                  header: 'bg-orange-100/50',
+                  text: 'text-orange-900'
+                }}
+                isUrgent={true}
+                isImportant={false}
+              >
+                {urgentNotImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
 
-            {/* Quadrant 3: Not Urgent & Important */}
-            <Card className="border-blue-200 bg-blue-50/50">
-              <CardHeader className="bg-blue-100/50">
-                <CardTitle className="text-blue-900 flex items-center justify-between">
-                  <span>📅 Not Urgent & Important</span>
-                  <span className="text-sm font-normal">({notUrgentImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {notUrgentImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  notUrgentImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
+              {/* Quadrant 3: Not Urgent & Important */}
+              <DroppableQuadrant
+                id="quadrant-noturgent-important"
+                title="Not Urgent & Important"
+                emoji="📅"
+                count={notUrgentImportant.length}
+                colorClasses={{
+                  border: 'border-blue-200',
+                  gradient: 'bg-gradient-to-br from-blue-50 to-indigo-50',
+                  header: 'bg-blue-100/50',
+                  text: 'text-blue-900'
+                }}
+                isUrgent={false}
+                isImportant={true}
+              >
+                {notUrgentImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
 
-            {/* Quadrant 4: Not Urgent & Not Important */}
-            <Card className="border-green-200 bg-green-50/50">
-              <CardHeader className="bg-green-100/50">
-                <CardTitle className="text-green-900 flex items-center justify-between">
-                  <span>🌱 Not Urgent & Not Important</span>
-                  <span className="text-sm font-normal">({notUrgentNotImportant.length})</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-3 max-h-[600px] overflow-y-auto">
-                {notUrgentNotImportant.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">No tasks in this quadrant</p>
-                ) : (
-                  notUrgentNotImportant.map(task => (
-                    <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
+              {/* Quadrant 4: Not Urgent & Not Important */}
+              <DroppableQuadrant
+                id="quadrant-noturgent-notimportant"
+                title="Not Urgent & Not Important"
+                emoji="🌱"
+                count={notUrgentNotImportant.length}
+                colorClasses={{
+                  border: 'border-green-200',
+                  gradient: 'bg-gradient-to-br from-green-50 to-emerald-50',
+                  header: 'bg-green-100/50',
+                  text: 'text-green-900'
+                }}
+                isUrgent={false}
+                isImportant={false}
+              >
+                {notUrgentNotImportant.map(task => (
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                ))}
+              </DroppableQuadrant>
+            </div>
+
+            {/* Drag Overlay */}
+            <DragOverlay>
+              {activeTask ? (
+                <div className="opacity-80">
+                  <TaskCard task={activeTask} onStatusChange={() => {}} />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </main>
 
@@ -330,7 +464,7 @@ export default function Home() {
       {projects.length > 0 && (
         <button
           onClick={() => setTaskModalOpen(true)}
-          className="fixed bottom-8 right-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-4 shadow-lg transition-all hover:scale-110"
+          className="fixed bottom-8 right-8 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full p-4 shadow-xl transition-all hover:scale-110 hover:shadow-2xl"
           aria-label="Add new task"
         >
           <Plus className="h-6 w-6" />

@@ -5,8 +5,9 @@ import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Clock, AlertTriangle, Star, Circle } from 'lucide-react'
+import { Clock, AlertTriangle, Star, Circle, Calendar } from 'lucide-react'
 import { useState } from 'react'
+import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns'
 
 interface Task {
   id: string
@@ -16,6 +17,7 @@ interface Task {
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
   status: 'todo' | 'in_progress' | 'blocked' | 'done'
+  deadline: string | null
 }
 
 interface TaskCardProps {
@@ -52,6 +54,34 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
     }
   }
 
+  const getDeadlineInfo = () => {
+    if (!task.deadline) return null
+
+    const deadlineDate = parseISO(task.deadline)
+    const isOverdue = isPast(deadlineDate) && !isToday(deadlineDate)
+
+    let label = ''
+    let color = ''
+
+    if (isOverdue) {
+      label = `Overdue: ${format(deadlineDate, 'MMM d, yyyy')}`
+      color = 'bg-red-100 text-red-700 border-red-300'
+    } else if (isToday(deadlineDate)) {
+      label = 'Due Today'
+      color = 'bg-orange-100 text-orange-700 border-orange-300'
+    } else if (isTomorrow(deadlineDate)) {
+      label = 'Due Tomorrow'
+      color = 'bg-yellow-100 text-yellow-700 border-yellow-300'
+    } else {
+      label = `Due: ${format(deadlineDate, 'MMM d, yyyy')}`
+      color = 'bg-blue-100 text-blue-700 border-blue-300'
+    }
+
+    return { label, color }
+  }
+
+  const deadlineInfo = getDeadlineInfo()
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
@@ -69,6 +99,12 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
                 <Badge variant="secondary" className="text-xs">
                   <Circle className="mr-1 h-3 w-3" />
                   Nice to Have
+                </Badge>
+              )}
+              {deadlineInfo && (
+                <Badge className={`text-xs border ${deadlineInfo.color}`}>
+                  <Calendar className="mr-1 h-3 w-3" />
+                  {deadlineInfo.label}
                 </Badge>
               )}
             </div>
