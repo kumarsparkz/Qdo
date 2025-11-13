@@ -1,0 +1,64 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Get all tags matching v1.*.0 pattern
+          LATEST_TAG=$(git tag -l "v1.*.0" | sort -V | tail -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            # No existing tag, start with v1.0.0
+            NEW_VERSION="v1.0.0"
+          else
+            # Extract the middle number from v1.x.0
+            CURRENT_NUM=$(echo $LATEST_TAG | sed 's/v1\.\([0-9]*\)\.0/\1/')
+
+            # Increment the number
+            NEXT_NUM=$((CURRENT_NUM + 1))
+
+            # Check if we've exceeded 9999
+            if [ $NEXT_NUM -gt 9999 ]; then
+              echo "Error: Version number has exceeded 9999"
+              exit 1
+            fi
+
+            NEW_VERSION="v1.${NEXT_NUM}.0"
+          fi
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "Creating new release: $NEW_VERSION"
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_tag.outputs.new_version }}
+          release_name: Release ${{ steps.get_tag.outputs.new_version }}
+          body: |
+            Auto-generated release ${{ steps.get_tag.outputs.new_version }}
+
+            ## Changes
+            - See commit history for details
+
+            ## Deployment
+            This release was automatically created from the main branch.
+          draft: false
+          prerelease: false
