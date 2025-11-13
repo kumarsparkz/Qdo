@@ -15,30 +15,16 @@ export default function Index() {
     const { data: { session } } = await supabase.auth.getSession()
 
     if (session) {
-      // User is authenticated, navigate to home
-      // For now, just show a message
-      setLoading(false)
+      router.replace('/home')
     } else {
       router.replace('/login')
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text style={styles.text}>Loading...</Text>
-      </View>
-    )
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Quadrant Todo</Text>
-      <Text style={styles.subtitle}>Mobile app coming soon!</Text>
-      <Text style={styles.text}>
-        For now, please use the web version at your Vercel URL
-      </Text>
+      <ActivityIndicator size="large" color="#3b82f6" />
+      <Text style={styles.text}>Loading...</Text>
     </View>
   )
 }
