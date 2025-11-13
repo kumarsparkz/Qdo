@@ -1,0 +1,9 @@
+# Assets Directory
+
+This directory contains app assets:
+- icon.png (1024x1024)
+- splash.png (1242x2688)
+- adaptive-icon.png (1024x1024)
+- favicon.png (48x48)
+
+Please create these assets using the guidelines in ASSETS_GUIDE.md before building for production.
