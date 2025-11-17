@@ -1,0 +1,66 @@
+# FastAPI and ASGI server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy[asyncio]==2.0.25
+asyncpg==0.29.0
+alembic==1.13.1
+
+# Pydantic for settings and schemas
+pydantic==2.5.3
+pydantic-settings==2.1.0
+email-validator==2.1.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+passlib[argon2,bcrypt]==1.7.4
+google-auth==2.27.0
+
+# Redis
+redis[hiredis]==5.0.1
+
+# Background tasks
+celery[redis]==5.3.6
+
+# OpenTelemetry instrumentation
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-instrumentation-fastapi==0.43b0
+opentelemetry-instrumentation-sqlalchemy==0.43b0
+opentelemetry-instrumentation-redis==0.43b0
+opentelemetry-instrumentation-logging==0.43b0
+opentelemetry-exporter-otlp-proto-grpc==1.22.0
+
+# Prometheus metrics
+prometheus-client==0.19.0
+
+# HTTP client
+httpx==0.26.0
+
+# Utilities
+python-dateutil==2.8.2
+
+# Development dependencies
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+httpx==0.26.0  # for TestClient
+faker==22.5.1  # for test data generation
+
+# Security scanning
+bandit==1.7.6
+pip-audit==2.6.3
+safety==3.0.1
+
+# Code quality
+black==24.1.1
+ruff==0.1.14
+mypy==1.8.0
+
+# Type stubs
+types-passlib==1.7.7.20240106
+types-python-jose==3.3.4.20240106
+types-redis==4.6.0.20240106

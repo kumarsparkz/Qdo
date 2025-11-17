@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: quadrant-todo-api
+  namespace: quadrant-todo
+  labels:
+    app: quadrant-todo-api
+spec:
+  type: ClusterIP
+  selector:
+    app: quadrant-todo-api
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quadrant-todo-api-metrics
+  namespace: quadrant-todo
+  labels:
+    app: quadrant-todo-api
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  selector:
+    app: quadrant-todo-api
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
