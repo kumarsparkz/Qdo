@@ -12,7 +12,7 @@ export default function RootLayout() {
           <Stack.Screen
             name="home"
             options={{
-              title: 'Quadrant Todo',
+              title: 'Qdo',
               headerShown: true,
             }}
           />

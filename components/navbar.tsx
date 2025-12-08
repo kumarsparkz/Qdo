@@ -28,7 +28,7 @@ export default function Navbar({ userEmail }: NavbarProps) {
             <div className="flex items-center gap-3">
               <Logo className="h-8 w-8" />
               <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Quadrant Todo
+                Qdo
               </h1>
             </div>
             <div className="hidden md:flex items-center space-x-2">

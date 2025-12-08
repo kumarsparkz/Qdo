@@ -60,7 +60,7 @@ export default function Login() {
       >
         <View style={styles.header}>
           <Text style={styles.emoji}>📊</Text>
-          <Text style={styles.title}>Quadrant Todo</Text>
+          <Text style={styles.title}>Qdo</Text>
           <Text style={styles.subtitle}>
             Organize your tasks with the Eisenhower Matrix
           </Text>
