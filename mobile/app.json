@@ -39,7 +39,12 @@
     },
     "scheme": "qdo",
     "plugins": [
-      "expo-router"
+      [
+        "expo-router",
+        {
+          "origin": "https://qdo.app"
+        }
+      ]
     ],
     "extra": {
       "eas": {
