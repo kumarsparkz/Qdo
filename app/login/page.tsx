@@ -105,7 +105,7 @@ export default function LoginPage() {
             To-Do
           </CardTitle>
           <CardDescription className="text-base">
-            Let's get into Q! &
+            Let&apos;s get into Q! &
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
