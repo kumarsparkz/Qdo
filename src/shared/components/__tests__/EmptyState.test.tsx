@@ -39,9 +39,10 @@ describe('EmptyState', () => {
       />
     );
 
-    // Check if icon is rendered (by checking for the svg element)
-    const icon = screen.getByText('Empty inbox').parentElement?.querySelector('svg');
-    expect(icon).toBeInTheDocument();
+    // Check if icon is rendered (by finding the container and checking for svg)
+    const container = screen.getByText('Empty inbox').closest('[class*="flex"]');
+    const icon = container?.querySelector('svg');
+    expect(icon).toBeTruthy();
   });
 
   it('should call onAction when action button is clicked', async () => {
