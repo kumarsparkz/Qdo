@@ -349,6 +349,6 @@ const markdownStyles = {
   },
   link: {
     color: '#3B82F6',
-    textDecorationLine: 'underline',
+    textDecorationLine: 'underline' as const,
   },
 }
