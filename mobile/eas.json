@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 5.9.0"
+    "version": ">= 5.9.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -19,7 +20,8 @@
         "APP_ENV": "production"
       },
       "ios": {
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Release",
+        "image": "macos-sequoia-15.4-xcode-16.3"
       },
       "android": {
         "buildType": "apk"
@@ -35,9 +37,9 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleId": "kumarsparkz@gmail.com",
+        "ascAppId": "6757134919",
+        "appleTeamId": "792UTRPHC3"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",
@@ -46,9 +48,9 @@
     },
     "beta": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleId": "kumarsparkz@gmail.com",
+        "ascAppId": "6757134919",
+        "appleTeamId": "792UTRPHC3"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",

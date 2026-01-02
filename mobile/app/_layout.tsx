@@ -1,12 +1,15 @@
 import { Stack } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
 import { AuthProvider } from '../contexts/AuthContext'
 import { DataProvider } from '../contexts/DataContext'
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <Stack>
+    <>
+      <StatusBar style="auto" />
+      <AuthProvider>
+        <DataProvider>
+          <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen
@@ -54,7 +57,8 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-      </DataProvider>
-    </AuthProvider>
+        </DataProvider>
+      </AuthProvider>
+    </>
   )
 }

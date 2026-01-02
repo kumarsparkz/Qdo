@@ -19,7 +19,15 @@
       "bundleIdentifier": "com.qdo.app",
       "infoPlist": {
         "NSCameraUsageDescription": "This app does not use the camera.",
-        "NSPhotoLibraryUsageDescription": "This app does not access your photo library."
+        "NSPhotoLibraryUsageDescription": "This app does not access your photo library.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.956005568384-okdcvqatb1rjj9allfkd2g5hbrmj26lu"
+            ]
+          }
+        ]
       },
       "buildNumber": "1"
     },
@@ -48,7 +56,10 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
+        "projectId": "e5597836-d291-48e6-9784-5e436406e4f4"
+      },
+      "router": {
+        "origin": "https://qdo.app"
       }
     },
     "owner": "kumarsparkz"
