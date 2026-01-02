@@ -105,13 +105,13 @@ export default function LoginPage() {
             To-Do
           </CardTitle>
           <CardDescription className="text-base">
-            Organize your tasks &
+            Let's get into Q! &
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center mb-4">
             <p className="text-sm text-muted-foreground">
-              Prioritize what matters most
+              get things done
             </p>
           </div>
 

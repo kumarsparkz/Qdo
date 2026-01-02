@@ -17,6 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.qdo.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "This app does not use the camera.",
         "NSPhotoLibraryUsageDescription": "This app does not access your photo library.",
@@ -40,6 +41,20 @@
       "versionCode": 1,
       "permissions": [
         "INTERNET"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "qdo",
+              "host": "auth",
+              "pathPrefix": "/callback"
+            }
+          ],
+          "category": ["DEFAULT", "BROWSABLE"]
+        }
       ]
     },
     "web": {
@@ -52,7 +67,9 @@
         {
           "origin": "https://qdo.app"
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {

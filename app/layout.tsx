@@ -6,8 +6,8 @@ import { QueryProvider } from "@/src/lib/query/QueryProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Priority Task Manager - Eisenhower Matrix",
-  description: "Organize your tasks with the Eisenhower Matrix. Focus on what truly matters.",
+  title: "Priority Task Manager",
+  description: "Let's get into Q!",
 };
 
 export default function RootLayout({
