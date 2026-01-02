@@ -75,7 +75,7 @@ export default function ProjectModal({
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
           <DialogDescription>
-            Create a project to organize your tasks
+            Create a project to get into Q!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
