@@ -69,8 +69,7 @@
         }
       ],
       "expo-web-browser",
-      "expo-apple-authentication",
-      "expo-haptics"
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {
