@@ -12,7 +12,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
 import { QuadrantView } from '../components/QuadrantView'
+import { DailyFocus } from '../components/DailyFocus'
+import { TaskStats } from '../components/TaskStats'
+import { MotivationalTip } from '../components/MotivationalTip'
 import { LoadingSpinner, EmptyState, Button } from '../components/ui'
+import * as Haptics from 'expo-haptics'
 
 export default function Home() {
   const router = useRouter()
@@ -114,6 +118,15 @@ export default function Home() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* Daily Motivational Tip */}
+        <MotivationalTip />
+
+        {/* Daily Focus - Most important task */}
+        <DailyFocus tasks={tasks} projects={projects} />
+
+        {/* Task Statistics */}
+        <TaskStats tasks={tasks} />
+
         {/* Top Row */}
         <View style={styles.row}>
           <QuadrantView
@@ -162,7 +175,11 @@ export default function Home() {
       {/* Floating Action Button */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/create-task')}
+        onPress={async () => {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+          router.push('/create-task')
+        }}
+        activeOpacity={0.8}
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>

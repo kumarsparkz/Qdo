@@ -180,10 +180,18 @@ export default function Login() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={styles.emoji}>📊</Text>
+          <View style={styles.logoContainer}>
+            <View style={styles.logoBox}>
+              <View style={[styles.logoQuadrant, styles.q1]} />
+              <View style={[styles.logoQuadrant, styles.q2]} />
+              <View style={[styles.logoQuadrant, styles.q3]} />
+              <View style={[styles.logoQuadrant, styles.q4]} />
+            </View>
+          </View>
           <Text style={styles.title}>Qdo</Text>
+          <Text style={styles.tagline}>Master the Matrix. Own Your Day.</Text>
           <Text style={styles.subtitle}>
-            Let's get into Q! & get things done 
+            Prioritize with the Eisenhower Method
           </Text>
         </View>
 
@@ -265,7 +273,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F9FF',
+    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
     flexGrow: 1,
@@ -276,18 +284,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  emoji: {
-    fontSize: 64,
-    marginBottom: 16,
+  logoContainer: {
+    marginBottom: 20,
+  },
+  logoBox: {
+    width: 80,
+    height: 80,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  logoQuadrant: {
+    width: 40,
+    height: 40,
+  },
+  q1: {
+    backgroundColor: '#EF4444', // Red - Urgent & Important
+  },
+  q2: {
+    backgroundColor: '#F59E0B', // Orange - Urgent & Not Important
+  },
+  q3: {
+    backgroundColor: '#3B82F6', // Blue - Not Urgent & Important
+  },
+  q4: {
+    backgroundColor: '#10B981', // Green - Not Urgent & Not Important
   },
   title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#1E40AF',
+    fontSize: 42,
+    fontWeight: '800',
+    marginBottom: 8,
+    color: '#1E293B',
+    letterSpacing: -1,
+  },
+  tagline: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
     color: '#64748B',
     paddingHorizontal: 20,
