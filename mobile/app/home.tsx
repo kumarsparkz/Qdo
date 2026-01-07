@@ -8,21 +8,25 @@ import {
   Alert,
 } from 'react-native'
 import { useRouter } from 'expo-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useData } from '../contexts/DataContext'
 import { QuadrantView } from '../components/QuadrantView'
 import { DailyFocus } from '../components/DailyFocus'
 import { TaskStats } from '../components/TaskStats'
 import { MotivationalTip } from '../components/MotivationalTip'
+import { ProjectSelector } from '../components/ProjectSelector'
+import { FilterBar, StatusFilter } from '../components/FilterBar'
 import { LoadingSpinner, EmptyState, Button } from '../components/ui'
 import * as Haptics from 'expo-haptics'
 
 export default function Home() {
   const router = useRouter()
   const { user, signOut } = useAuth()
-  const { projects, tasks, loading, refreshProjects, refreshTasks, selectedProjectId } = useData()
+  const { projects, tasks, loading, refreshProjects, refreshTasks, selectedProjectId, setSelectedProjectId } = useData()
   const [refreshing, setRefreshing] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   useEffect(() => {
     if (!user) {
@@ -50,13 +54,50 @@ export default function Home() {
     ])
   }
 
-  // Filter active tasks (not done)
-  const activeTasks = tasks.filter((task) => task.status !== 'done')
+  // Calculate task counts for filter bar
+  const taskCounts = useMemo(() => {
+    const projectTasks = selectedProjectId
+      ? tasks.filter((t) => t.project_id === selectedProjectId)
+      : tasks
 
-  // Filter by selected project if any
-  const filteredTasks = selectedProjectId
-    ? activeTasks.filter((task) => task.project_id === selectedProjectId)
-    : activeTasks
+    return {
+      all: projectTasks.length,
+      todo: projectTasks.filter((t) => t.status === 'todo').length,
+      in_progress: projectTasks.filter((t) => t.status === 'in_progress').length,
+      blocked: projectTasks.filter((t) => t.status === 'blocked').length,
+      done: projectTasks.filter((t) => t.status === 'done').length,
+    }
+  }, [tasks, selectedProjectId])
+
+  // Filter tasks based on all criteria
+  const filteredTasks = useMemo(() => {
+    let result = tasks
+
+    // Filter by project
+    if (selectedProjectId) {
+      result = result.filter((task) => task.project_id === selectedProjectId)
+    }
+
+    // Filter by status
+    if (statusFilter !== 'all') {
+      result = result.filter((task) => task.status === statusFilter)
+    } else {
+      // By default, show active tasks (not done) in quadrant view
+      result = result.filter((task) => task.status !== 'done')
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      result = result.filter(
+        (task) =>
+          task.title.toLowerCase().includes(query) ||
+          (task.description && task.description.toLowerCase().includes(query))
+      )
+    }
+
+    return result
+  }, [tasks, selectedProjectId, statusFilter, searchQuery])
 
   // Categorize tasks by quadrant
   const urgentImportant = filteredTasks.filter((t) => t.is_urgent && t.is_important)
@@ -105,6 +146,12 @@ export default function Home() {
           >
             <Text style={styles.navButtonText}>🚫 Blocked</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navButton, styles.projectButton]}
+            onPress={() => router.push('/create-project')}
+          >
+            <Text style={styles.projectButtonText}>+ Project</Text>
+          </TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
           <Text style={styles.signOutText}>Sign Out</Text>
@@ -120,6 +167,24 @@ export default function Home() {
       >
         {/* Daily Motivational Tip */}
         <MotivationalTip />
+
+        {/* Project Selector */}
+        {projects.length > 1 && (
+          <ProjectSelector
+            projects={projects}
+            selectedProjectId={selectedProjectId}
+            onSelectProject={setSelectedProjectId}
+          />
+        )}
+
+        {/* Filter Bar with Search and Status Filters */}
+        <FilterBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter}
+          taskCounts={taskCounts}
+        />
 
         {/* Daily Focus - Most important task */}
         <DailyFocus tasks={tasks} projects={projects} />
@@ -216,6 +281,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#374151',
+  },
+  projectButton: {
+    backgroundColor: '#DBEAFE',
+    borderColor: '#3B82F6',
+    borderWidth: 1,
+  },
+  projectButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
   },
   signOutButton: {
     paddingVertical: 6,
