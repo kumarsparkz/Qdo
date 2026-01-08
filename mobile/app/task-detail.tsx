@@ -218,10 +218,19 @@ export default function TaskDetail() {
           </View>
         </Card>
 
-        {/* Delete Button */}
-        <Button onPress={handleDelete} variant="danger" fullWidth>
-          Delete Task
-        </Button>
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <Button
+            onPress={() => router.push(`/edit-task?taskId=${task.id}`)}
+            variant="secondary"
+            style={styles.editButton}
+          >
+            Edit Task
+          </Button>
+          <Button onPress={handleDelete} variant="danger" style={styles.deleteButton}>
+            Delete
+          </Button>
+        </View>
 
         <View style={styles.spacer} />
       </ScrollView>
@@ -308,6 +317,16 @@ const styles = StyleSheet.create({
   },
   statusButtonTextActive: {
     color: '#3B82F6',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editButton: {
+    flex: 1,
+  },
+  deleteButton: {
+    flex: 1,
   },
   spacer: {
     height: 32,
