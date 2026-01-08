@@ -30,7 +30,12 @@ export function QuadrantView({ title, emoji, subtitle, tasks, projects, color }:
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+      >
         {sortedTasks.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>No tasks</Text>
@@ -92,7 +97,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   content: {
+    flex: 1,
+  },
+  contentContainer: {
     padding: 12,
+    flexGrow: 1,
   },
   empty: {
     padding: 20,
