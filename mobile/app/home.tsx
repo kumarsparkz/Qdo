@@ -187,10 +187,10 @@ export default function Home() {
         />
 
         {/* Daily Focus - Most important task */}
-        <DailyFocus tasks={tasks} projects={projects} />
+        <DailyFocus tasks={selectedProjectId ? tasks.filter((t) => t.project_id === selectedProjectId) : tasks} projects={projects} />
 
         {/* Task Statistics */}
-        <TaskStats tasks={tasks} />
+        <TaskStats tasks={selectedProjectId ? tasks.filter((t) => t.project_id === selectedProjectId) : tasks} />
 
         {/* Top Row */}
         <View style={styles.row}>

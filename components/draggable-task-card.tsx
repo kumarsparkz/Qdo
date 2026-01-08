@@ -9,6 +9,7 @@ interface Task {
   id: string
   title: string
   description: string | null
+  project_id: string
   is_urgent: boolean
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
@@ -19,9 +20,10 @@ interface Task {
 interface DraggableTaskCardProps {
   task: Task
   onStatusChange: (taskId: string, status: Task['status']) => void
+  onEdit?: (task: Task) => void
 }
 
-export default function DraggableTaskCard({ task, onStatusChange }: DraggableTaskCardProps) {
+export default function DraggableTaskCard({ task, onStatusChange, onEdit }: DraggableTaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     data: {
@@ -45,7 +47,7 @@ export default function DraggableTaskCard({ task, onStatusChange }: DraggableTas
         <GripVertical className="h-5 w-5 text-muted-foreground" />
       </div>
       <div className={isDragging ? 'pointer-events-none' : ''}>
-        <TaskCard task={task} onStatusChange={onStatusChange} />
+        <TaskCard task={task} onStatusChange={onStatusChange} onEdit={onEdit} />
       </div>
     </div>
   )
