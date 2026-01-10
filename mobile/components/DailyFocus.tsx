@@ -38,7 +38,7 @@ export function DailyFocus({ tasks, projects }: DailyFocusProps) {
 
   const handlePress = async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    router.push(`/task-detail?id=${focusTask.id}`)
+    router.push(`/task-detail?taskId=${focusTask.id}`)
   }
 
   return (
