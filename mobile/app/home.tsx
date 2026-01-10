@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Alert,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useState, useEffect, useMemo } from 'react'
@@ -22,7 +21,7 @@ import * as Haptics from 'expo-haptics'
 
 export default function Home() {
   const router = useRouter()
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const { projects, tasks, loading, refreshProjects, refreshTasks, selectedProjectId, setSelectedProjectId } = useData()
   const [refreshing, setRefreshing] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,19 +39,6 @@ export default function Home() {
     setRefreshing(false)
   }
 
-  const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut()
-          router.replace('/login')
-        },
-      },
-    ])
-  }
 
   // Calculate task counts for filter bar
   const taskCounts = useMemo(() => {
@@ -153,8 +139,8 @@ export default function Home() {
             <Text style={styles.projectButtonText}>+ Project</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutText}>Sign Out</Text>
+        <TouchableOpacity style={styles.settingsButton} onPress={() => router.push('/settings')}>
+          <Text style={styles.settingsText}>Settings</Text>
         </TouchableOpacity>
       </View>
 
@@ -292,13 +278,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#3B82F6',
   },
-  signOutButton: {
+  settingsButton: {
     paddingVertical: 6,
     paddingHorizontal: 12,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 6,
   },
-  signOutText: {
+  settingsText: {
     fontSize: 14,
-    color: '#EF4444',
+    color: '#374151',
     fontWeight: '600',
   },
   signOutContainer: {
