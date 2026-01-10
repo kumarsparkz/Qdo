@@ -4,24 +4,39 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/navbar'
 import TaskCard from '@/components/task-card'
+import EditTaskModal from '@/components/edit-task-modal'
 import { Card, CardContent } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertCircle, List, LayoutGrid } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
 
 interface Task {
   id: string
   title: string
   description: string | null
+  project_id: string
   is_urgent: boolean
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
   status: 'todo' | 'in_progress' | 'blocked' | 'done'
   deadline: string | null
+  created_at: string
+  updated_at: string
+}
+
+interface Project {
+  id: string
+  name: string
 }
 
 export default function BlockedPage() {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
+  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false)
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
 
   const supabase = createClient()
 
@@ -33,7 +48,7 @@ export default function BlockedPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       setUserEmail(user.email || '')
-      await fetchTasks()
+      await Promise.all([fetchTasks(), fetchProjects()])
     }
     setLoading(false)
   }
@@ -50,6 +65,24 @@ export default function BlockedPage() {
     } else {
       setTasks(data || [])
     }
+  }
+
+  const fetchProjects = async () => {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching projects:', error)
+    } else {
+      setProjects(data || [])
+    }
+  }
+
+  const handleEditTask = (task: Task) => {
+    setTaskToEdit(task)
+    setEditTaskModalOpen(true)
   }
 
   const handleStatusChange = async (taskId: string, status: Task['status']) => {
@@ -82,13 +115,35 @@ export default function BlockedPage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <AlertCircle className="h-8 w-8 text-red-600" />
-            <h2 className="text-3xl font-bold">Blocked Tasks</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <AlertCircle className="h-8 w-8 text-red-600" />
+                <h2 className="text-3xl font-bold">Blocked Tasks</h2>
+              </div>
+              <p className="text-muted-foreground">
+                Tasks that need attention to unblock ({tasks.length})
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('table')}
+              >
+                <List className="mr-2 h-4 w-4" />
+                Table
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <LayoutGrid className="mr-2 h-4 w-4" />
+                Grid
+              </Button>
+            </div>
           </div>
-          <p className="text-muted-foreground">
-            Tasks that need attention to unblock ({tasks.length})
-          </p>
         </div>
 
         {tasks.length === 0 ? (
@@ -103,14 +158,83 @@ export default function BlockedPage() {
               </div>
             </CardContent>
           </Card>
+        ) : viewMode === 'table' ? (
+          <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Task Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Last Updated
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {tasks.map(task => (
+                    <tr key={task.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-900">{task.title}</div>
+                        {task.description && (
+                          <div className="text-sm text-gray-500 line-clamp-2 mt-1">
+                            {task.description}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {format(parseISO(task.created_at), 'MMM d, yyyy h:mm a')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {format(parseISO(task.updated_at), 'MMM d, yyyy h:mm a')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditTask(task)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleStatusChange(task.id, 'in_progress')}
+                          >
+                            Unblock
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {tasks.map(task => (
-              <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+              <TaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onEdit={handleEditTask} />
             ))}
           </div>
         )}
       </main>
+
+      <EditTaskModal
+        open={editTaskModalOpen}
+        onOpenChange={setEditTaskModalOpen}
+        projects={projects}
+        task={taskToEdit}
+        onTaskUpdated={fetchTasks}
+      />
     </div>
   )
 }

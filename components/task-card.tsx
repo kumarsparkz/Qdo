@@ -5,7 +5,7 @@ import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Clock, AlertTriangle, Star, Circle, Calendar } from 'lucide-react'
+import { Clock, AlertTriangle, Star, Circle, Calendar, Edit } from 'lucide-react'
 import { useState } from 'react'
 import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns'
 
@@ -13,6 +13,7 @@ interface Task {
   id: string
   title: string
   description: string | null
+  project_id: string
   is_urgent: boolean
   is_important: boolean
   priority: 'must_have' | 'nice_to_have'
@@ -23,9 +24,10 @@ interface Task {
 interface TaskCardProps {
   task: Task
   onStatusChange: (taskId: string, status: Task['status']) => void
+  onEdit?: (task: Task) => void
 }
 
-export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
+export default function TaskCard({ task, onStatusChange, onEdit }: TaskCardProps) {
   const [expanded, setExpanded] = useState(false)
 
   const getStatusColor = (status: Task['status']) => {
@@ -109,6 +111,16 @@ export default function TaskCard({ task, onStatusChange }: TaskCardProps) {
               )}
             </div>
           </div>
+          {onEdit && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onEdit(task)}
+              className="ml-2"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

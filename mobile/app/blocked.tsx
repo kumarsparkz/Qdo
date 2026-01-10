@@ -1,10 +1,11 @@
-import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
+import { useRouter } from 'expo-router'
 import { useData } from '../contexts/DataContext'
-import { TaskCard } from '../components/TaskCard'
-import { LoadingSpinner, EmptyState } from '../components/ui'
+import { LoadingSpinner, EmptyState, Card, Badge } from '../components/ui'
 
 export default function Blocked() {
+  const router = useRouter()
   const { tasks, projects, loading, refreshTasks } = useData()
   const [refreshing, setRefreshing] = useState(false)
 
@@ -20,6 +21,17 @@ export default function Blocked() {
   const sortedTasks = [...blockedTasks].sort(
     (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
   )
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+  }
 
   if (loading) {
     return <LoadingSpinner message="Loading blocked tasks..." />
@@ -46,7 +58,52 @@ export default function Blocked() {
       >
         {sortedTasks.map((task) => {
           const project = projects.find((p) => p.id === task.project_id)
-          return <TaskCard key={task.id} task={task} project={project} />
+          return (
+            <TouchableOpacity
+              key={task.id}
+              onPress={() => router.push(`/task-detail?taskId=${task.id}`)}
+              activeOpacity={0.7}
+            >
+              <Card style={styles.taskCard}>
+                <View style={styles.header}>
+                  <Text style={styles.title} numberOfLines={2}>
+                    {task.title}
+                  </Text>
+                  {task.priority === 'must_have' && (
+                    <Text style={styles.mustHave}>⭐</Text>
+                  )}
+                </View>
+
+                {task.description && (
+                  <Text style={styles.description} numberOfLines={2}>
+                    {task.description}
+                  </Text>
+                )}
+
+                <View style={styles.timestampContainer}>
+                  <View style={styles.timestampRow}>
+                    <Text style={styles.timestampLabel}>Created:</Text>
+                    <Text style={styles.timestampValue}>{formatDate(task.created_at)}</Text>
+                  </View>
+                  <View style={styles.timestampRow}>
+                    <Text style={styles.timestampLabel}>Last Updated:</Text>
+                    <Text style={styles.timestampValue}>{formatDate(task.updated_at)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.footer}>
+                  <Badge variant="danger" size="sm">
+                    Blocked
+                  </Badge>
+                  {project && (
+                    <Text style={styles.projectName} numberOfLines={1}>
+                      {project.name}
+                    </Text>
+                  )}
+                </View>
+              </Card>
+            </TouchableOpacity>
+          )
         })}
       </ScrollView>
     </View>
@@ -63,5 +120,66 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+  },
+  taskCard: {
+    marginBottom: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    flex: 1,
+    marginRight: 8,
+  },
+  mustHave: {
+    fontSize: 16,
+  },
+  description: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  timestampContainer: {
+    backgroundColor: '#FEF2F2',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#EF4444',
+  },
+  timestampRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  timestampLabel: {
+    fontSize: 12,
+    color: '#991B1B',
+    fontWeight: '600',
+  },
+  timestampValue: {
+    fontSize: 12,
+    color: '#7F1D1D',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  projectName: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: 8,
   },
 })

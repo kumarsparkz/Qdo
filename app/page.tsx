@@ -6,6 +6,7 @@ import Navbar from '@/components/navbar'
 import DraggableTaskCard from '@/components/draggable-task-card'
 import TaskCard from '@/components/task-card'
 import CreateTaskModal from '@/components/create-task-modal'
+import EditTaskModal from '@/components/edit-task-modal'
 import ProjectModal from '@/components/project-modal'
 import FilterBar, { FilterOptions } from '@/components/filter-bar'
 import DroppableQuadrant from '@/components/droppable-quadrant'
@@ -40,6 +41,8 @@ export default function Home() {
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false)
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null)
   const [projectModalOpen, setProjectModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterOptions>({
     search: '',
@@ -102,6 +105,11 @@ export default function Home() {
     } else {
       fetchTasks()
     }
+  }
+
+  const handleEditTask = (task: Task) => {
+    setTaskToEdit(task)
+    setEditTaskModalOpen(true)
   }
 
   const toggleProjectFilter = (projectId: string) => {
@@ -370,7 +378,7 @@ export default function Home() {
                 isImportant={true}
               >
                 {urgentImportant.map(task => (
-                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onEdit={handleEditTask} />
                 ))}
               </DroppableQuadrant>
 
@@ -390,7 +398,7 @@ export default function Home() {
                 isImportant={false}
               >
                 {urgentNotImportant.map(task => (
-                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onEdit={handleEditTask} />
                 ))}
               </DroppableQuadrant>
 
@@ -410,7 +418,7 @@ export default function Home() {
                 isImportant={true}
               >
                 {notUrgentImportant.map(task => (
-                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onEdit={handleEditTask} />
                 ))}
               </DroppableQuadrant>
 
@@ -430,7 +438,7 @@ export default function Home() {
                 isImportant={false}
               >
                 {notUrgentNotImportant.map(task => (
-                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} />
+                  <DraggableTaskCard key={task.id} task={task} onStatusChange={handleStatusChange} onEdit={handleEditTask} />
                 ))}
               </DroppableQuadrant>
             </div>
@@ -439,7 +447,7 @@ export default function Home() {
             <DragOverlay>
               {activeTask ? (
                 <div className="opacity-80">
-                  <TaskCard task={activeTask} onStatusChange={() => {}} />
+                  <TaskCard task={activeTask} onStatusChange={() => {}} onEdit={() => {}} />
                 </div>
               ) : null}
             </DragOverlay>
@@ -452,6 +460,14 @@ export default function Home() {
         onOpenChange={setTaskModalOpen}
         projects={projects}
         onTaskCreated={fetchTasks}
+      />
+
+      <EditTaskModal
+        open={editTaskModalOpen}
+        onOpenChange={setEditTaskModalOpen}
+        projects={projects}
+        task={taskToEdit}
+        onTaskUpdated={fetchTasks}
       />
 
       <ProjectModal
