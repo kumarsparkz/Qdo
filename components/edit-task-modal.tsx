@@ -6,11 +6,13 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { createClient } from '@/lib/supabase/client'
-import { Edit, AlertCircle, Calendar as CalendarIcon, FileText, FolderOpen, Zap, Star, Flag } from 'lucide-react'
+import { Edit, AlertCircle, Calendar as CalendarIcon, FileText, FolderOpen, Zap, Star, Flag, CheckSquare } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Calendar } from './ui/calendar'
 import { format, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { Checklist } from './checklist'
+import { useChecklistItems, useCreateChecklistItem, useUpdateChecklistItem, useDeleteChecklistItem, useToggleChecklistItem } from '@/src/features/checklists/hooks/useChecklists'
 
 interface Project {
   id: string
@@ -55,6 +57,38 @@ export default function EditTaskModal({
   const [loading, setLoading] = useState(false)
 
   const supabase = createClient()
+
+  // Fetch checklist items for the task
+  const { data: checklistItems = [] } = useChecklistItems(task?.id || '')
+  const createChecklistItem = useCreateChecklistItem()
+  const updateChecklistItem = useUpdateChecklistItem()
+  const deleteChecklistItem = useDeleteChecklistItem()
+  const toggleChecklistItem = useToggleChecklistItem()
+
+  // Handlers for checklist operations
+  const handleToggleItem = (id: string, isCompleted: boolean) => {
+    toggleChecklistItem.mutate({ id, isCompleted })
+  }
+
+  const handleAddItem = (title: string) => {
+    if (task) {
+      createChecklistItem.mutate({
+        task_id: task.id,
+        title,
+        position: checklistItems.length,
+      })
+    }
+  }
+
+  const handleDeleteItem = (id: string) => {
+    if (task) {
+      deleteChecklistItem.mutate({ id, taskId: task.id })
+    }
+  }
+
+  const handleUpdateItem = (id: string, title: string) => {
+    updateChecklistItem.mutate({ id, input: { title } })
+  }
 
   // Populate form when task changes
   useEffect(() => {
@@ -326,6 +360,23 @@ export default function EditTaskModal({
               >
                 Nice to Have
               </Button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <CheckSquare className="h-4 w-4 text-indigo-600" />
+              Checklist
+            </label>
+            <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+              <Checklist
+                taskId={task.id}
+                items={checklistItems}
+                onItemToggle={handleToggleItem}
+                onItemAdd={handleAddItem}
+                onItemDelete={handleDeleteItem}
+                onItemUpdate={handleUpdateItem}
+              />
             </div>
           </div>
 

@@ -7,11 +7,12 @@ import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { Badge } from './ui/badge'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, AlertCircle, Calendar as CalendarIcon, FileText, FolderOpen, Zap, Star, Flag } from 'lucide-react'
+import { Plus, AlertCircle, Calendar as CalendarIcon, FileText, FolderOpen, Zap, Star, Flag, CheckSquare } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Calendar } from './ui/calendar'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { SimpleChecklist } from './checklist'
 
 interface Project {
   id: string
@@ -38,6 +39,7 @@ export default function CreateTaskModal({
   const [isImportant, setIsImportant] = useState<boolean | null>(null)
   const [priority, setPriority] = useState<'must_have' | 'nice_to_have' | null>(null)
   const [deadline, setDeadline] = useState<Date>()
+  const [checklistItems, setChecklistItems] = useState<{ title: string; is_completed: boolean }[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -82,7 +84,7 @@ export default function CreateTaskModal({
         return
       }
 
-      const { error: insertError } = await supabase
+      const { data: newTask, error: insertError } = await supabase
         .from('tasks')
         .insert({
           title: title.trim(),
@@ -95,8 +97,29 @@ export default function CreateTaskModal({
           status: 'todo',
           deadline: deadline ? format(deadline, 'yyyy-MM-dd') : null,
         })
+        .select()
+        .single()
 
       if (insertError) throw insertError
+
+      // Create checklist items if any
+      if (checklistItems.length > 0 && newTask) {
+        const checklistItemsToInsert = checklistItems.map((item, index) => ({
+          task_id: newTask.id,
+          title: item.title,
+          is_completed: item.is_completed,
+          position: index,
+        }))
+
+        const { error: checklistError } = await supabase
+          .from('checklist_items')
+          .insert(checklistItemsToInsert)
+
+        if (checklistError) {
+          console.error('Error creating checklist items:', checklistError)
+          // Don't throw error, task was created successfully
+        }
+      }
 
       // Reset form
       setTitle('')
@@ -106,6 +129,7 @@ export default function CreateTaskModal({
       setIsImportant(null)
       setPriority(null)
       setDeadline(undefined)
+      setChecklistItems([])
 
       onTaskCreated()
       onOpenChange(false)
@@ -327,6 +351,19 @@ export default function CreateTaskModal({
               >
                 Nice to Have
               </Button>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              <CheckSquare className="h-4 w-4 text-indigo-600" />
+              Checklist (Optional)
+            </label>
+            <div className="p-4 rounded-lg border border-slate-200 bg-slate-50">
+              <SimpleChecklist
+                items={checklistItems}
+                onChange={setChecklistItems}
+              />
             </div>
           </div>
 

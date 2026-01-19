@@ -5,9 +5,10 @@ import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { Clock, AlertTriangle, Star, Circle, Calendar, Edit } from 'lucide-react'
+import { Clock, AlertTriangle, Star, Circle, Calendar, Edit, CheckSquare } from 'lucide-react'
 import { useState } from 'react'
 import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns'
+import { useChecklistItems } from '@/src/features/checklists/hooks/useChecklists'
 
 interface Task {
   id: string
@@ -29,6 +30,14 @@ interface TaskCardProps {
 
 export default function TaskCard({ task, onStatusChange, onEdit }: TaskCardProps) {
   const [expanded, setExpanded] = useState(false)
+
+  // Fetch checklist items for this task
+  const { data: checklistItems = [] } = useChecklistItems(task.id)
+
+  // Calculate checklist progress
+  const checklistTotal = checklistItems.length
+  const checklistCompleted = checklistItems.filter(item => item.is_completed).length
+  const hasChecklist = checklistTotal > 0
 
   const getStatusColor = (status: Task['status']) => {
     switch (status) {
@@ -107,6 +116,16 @@ export default function TaskCard({ task, onStatusChange, onEdit }: TaskCardProps
                 <Badge className={`text-xs border ${deadlineInfo.color}`}>
                   <Calendar className="mr-1 h-3 w-3" />
                   {deadlineInfo.label}
+                </Badge>
+              )}
+              {hasChecklist && (
+                <Badge className={`text-xs border ${
+                  checklistCompleted === checklistTotal
+                    ? 'bg-green-100 text-green-700 border-green-300'
+                    : 'bg-slate-100 text-slate-700 border-slate-300'
+                }`}>
+                  <CheckSquare className="mr-1 h-3 w-3" />
+                  {checklistCompleted}/{checklistTotal}
                 </Badge>
               )}
             </div>

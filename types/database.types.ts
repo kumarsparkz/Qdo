@@ -79,6 +79,35 @@ export interface Database {
           updated_at?: string
         }
       }
+      checklist_items: {
+        Row: {
+          id: string
+          task_id: string
+          title: string
+          is_completed: boolean
+          position: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          title: string
+          is_completed?: boolean
+          position?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          title?: string
+          is_completed?: boolean
+          position?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
